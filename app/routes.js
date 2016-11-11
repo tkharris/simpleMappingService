@@ -1,9 +1,9 @@
 // Dependencies
 var mongoose        = require('mongoose');
-var User            = require('./model.js');
+var user            = require('./models/model.js');
 
 // Opens App Routes
-module.exports = function(app) {
+module.exports = function(app, passport) {
 
      // =====================================
     // HOME PAGE (with login links) ========
@@ -34,6 +34,14 @@ module.exports = function(app) {
         // render the page and pass in any flash data if it exists
         res.sendfile('public/views/signup.html'); //, { message: req.flash('signupMessage') });
     });
+
+    // process the signup form
+    app.post('/signup', passport.authenticate('local-signup', {
+        successRedirect : '/profile', // redirect to the secure profile section
+        failureRedirect : '/signup', // redirect back to the signup page if there is an error
+        failureFlash : true // allow flash messages
+    }));
+
 
     // process the signup form
     // app.post('/signup', do all our passport stuff here);
