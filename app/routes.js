@@ -17,9 +17,7 @@ module.exports = function(app, passport) {
     // =====================================
     // show the login form
     app.get('/login', function(req, res) {
-
-        // render the page and pass in any flash data if it exists
-        res.sendfile('public/views/login.html'); //, { message: req.flash('loginMessage') }); 
+        res.sendfile('public/views/login.html');
     });
 
     // process the login form
@@ -34,9 +32,7 @@ module.exports = function(app, passport) {
     // =====================================
     // show the signup form
     app.get('/signup', function(req, res) {
-
-        // render the page and pass in any flash data if it exists
-        res.sendfile('public/views/signup.html'); //, { message: req.flash('signupMessage') });
+        res.sendfile('public/views/signup.html');
     });
 
     // process the signup form
