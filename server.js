@@ -31,7 +31,10 @@ app.use(bodyParser.json({ type: 'application/vnd.api+json'}));  // parse applica
 app.use(methodOverride());
 
 // required for passport
-app.use(session({ secret: 'ilovescotchscotchyscotchscotch' })); // session secret
+app.use(session({
+  secret: 'BANANAcobana',
+  cookie: {path: '/', httpOnly: false, secure: false, maxAge: null}
+})); // session secret
 app.use(passport.initialize());
 app.use(passport.session()); // persistent login sessions
 app.use(flash()); // use connect-flash for flash messages stored in session
@@ -44,3 +47,16 @@ require('./app/routes.js')(app, passport);
 // -------------------------------------------------------
 app.listen(port);
 console.log('App listening on port ' + port);
+
+var ws = require("nodejs-websocket")
+var server = ws.createServer(function(conn){
+  console.log("New connection")
+  conn.on("text", function (str) {
+    console.log("Received "+str)
+    conn.sendText(str.toUpperCase()+"!!!")
+  })
+  conn.on("close", function (code, reason) {
+    console.log("Connection closed")
+  })
+}).listen(3001)
+console.log('WebSockets listening on port ' + 3001)

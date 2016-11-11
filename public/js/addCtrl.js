@@ -1,6 +1,6 @@
 // Creates the addCtrl Module and Controller. Note that it depends on the 'geolocation' module and service.
-var addCtrl = angular.module('addCtrl', ['geolocation', 'gservice']);
-addCtrl.controller('addCtrl', function($scope, $http, $rootScope, geolocation, gservice){
+var addCtrl = angular.module('addCtrl', ['ngCookies', 'geolocation', 'gservice']);
+addCtrl.controller('addCtrl', function($scope, $http, $rootScope, $cookies, geolocation, gservice){
 
     // Initializes Variables
     // ----------------------------------------------------------------------------
@@ -12,6 +12,10 @@ addCtrl.controller('addCtrl', function($scope, $http, $rootScope, geolocation, g
     // Set initial coordinates to the center of the US
     $scope.formData.latitude = 39.500;
     $scope.formData.longitude = -98.350;
+
+    var sessionID = $cookies.get('connect.sid');
+    var wsUri = "ws://localhost:3001/";
+    var websocket = new WebSocket(wsUri);
 
     $http.get('/me')
         .success(function (data) {
@@ -30,6 +34,7 @@ addCtrl.controller('addCtrl', function($scope, $http, $rootScope, geolocation, g
             $scope.formData.latitude = parseFloat(gservice.clickLat).toFixed(3);
             $scope.formData.longitude = parseFloat(gservice.clickLong).toFixed(3);
             $scope.formData.htmlverified = "Nope (Thanks for spamming my map...)";
+            $scope.setLocation();
         });
     });
 
@@ -38,21 +43,28 @@ addCtrl.controller('addCtrl', function($scope, $http, $rootScope, geolocation, g
     // Creates a new user based on the form fields
     $scope.setLocation = function() {
 
+        var location = {
+            longitude: parseFloat($scope.formData.longitude),
+            latitude: parseFloat($scope.formData.latitude)
+        };
+
         // Grabs all of the text box fields
         var userData = {
             email: $scope.formData.email,
-            location: [$scope.formData.longitude, $scope.formData.latitude]
+            location: [location.longitude, location.latitude]
         };
 
         // Saves the user data to the db
-        $http.post('/users', userData)
-            .success(function (data) {
-            })
-            .error(function (data) {
-                console.log('Error: ' + data);
-            });
+        //$http.post('/users', userData)
+        //    .success(function (data) {
+        //    })
+        //    .error(function (data) {
+        //        console.log('Error: ' + data);
+        //    });
+        console.log("sending to server: " + JSON.stringify({sessionID: sessionID, userData: userData}))
+        websocket.send(JSON.stringify({sessionID: sessionID, userData: userData}));
 
         // Refresh the map with new data
-        gservice.refresh($scope.formData.latitude, $scope.formData.longitude);
+        gservice.refresh(location.latitude, location.longitude);
     };
 });
