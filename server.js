@@ -48,15 +48,20 @@ require('./app/routes.js')(app, passport);
 app.listen(port);
 console.log('App listening on port ' + port);
 
-var ws = require("nodejs-websocket")
+var ws = require("nodejs-websocket");
+var placer = require('./app/placer.js');
 var server = ws.createServer(function(conn){
-  console.log("New connection")
+  console.log("New connection");
   conn.on("text", function (str) {
-    console.log("Received "+str)
-    conn.sendText(str.toUpperCase()+"!!!")
-  })
+    console.log("Received "+str);
+    placer.place(JSON.parse(str).userData);
+    conn.sendText(str.toUpperCase()+"!!!");
+  });
+  conn.on("error", function (errObj) {
+    console.log("Error: " + errObj);
+  });
   conn.on("close", function (code, reason) {
-    console.log("Connection closed")
-  })
+    console.log("Connection closed");
+  });
 }).listen(3001)
-console.log('WebSockets listening on port ' + 3001)
+console.log('WebSockets listening on port ' + 3001);
