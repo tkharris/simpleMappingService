@@ -61,6 +61,15 @@ module.exports = function(app, passport) {
         //});
     });
 
+    app.get('/me', isLoggedIn, function(req, res) {
+        var query = user.find({'email': req.user.email});
+        query.exec(function(err, users){
+            if(err)
+                res.send(err);
+            res.json(users[0]);
+        });
+    });
+
     // =====================================
     // LOGOUT ==============================
     // =====================================

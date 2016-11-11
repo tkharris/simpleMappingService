@@ -13,6 +13,15 @@ addCtrl.controller('addCtrl', function($scope, $http, $rootScope, geolocation, g
     $scope.formData.latitude = 39.500;
     $scope.formData.longitude = -98.350;
 
+    $http.get('/me')
+        .success(function (data) {
+            console.log(data);
+            $scope.formData.email = data.email;
+        })
+        .error(function (data) {
+            console.log('Error: ' + data);
+        });
+
     // Get coordinates based on mouse click. When a click event is detected....
     $rootScope.$on("clicked", function(){
 
@@ -32,23 +41,14 @@ addCtrl.controller('addCtrl', function($scope, $http, $rootScope, geolocation, g
         // Grabs all of the text box fields
         var userData = {
             username: $scope.formData.username,
-            gender: $scope.formData.gender,
-            age: $scope.formData.age,
-            favlang: $scope.formData.favlang,
-            location: [$scope.formData.longitude, $scope.formData.latitude],
-            htmlverified: $scope.formData.htmlverified
+            location: [$scope.formData.longitude, $scope.formData.latitude]
         };
 
         // Saves the user data to the db
         $http.post('/users', userData)
             .success(function (data) {
-
                 // Once complete, clear the form (except location)
                 $scope.formData.username = "";
-                $scope.formData.gender = "";
-                $scope.formData.age = "";
-                $scope.formData.favlang = "";
-                
             })
             .error(function (data) {
                 console.log('Error: ' + data);
