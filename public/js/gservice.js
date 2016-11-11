@@ -52,6 +52,8 @@ angular.module('gservice', [])
             // Loop through all of the JSON entries provided in the response
             for(var i= 0; i < response.length; i++) {
                 var user = response[i];
+                if (typeof user.location == 'undefined')
+                    continue;
 
                 // Create popup windows for each record
                 var  contentString =

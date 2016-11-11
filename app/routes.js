@@ -75,7 +75,7 @@ module.exports = function(app, passport) {
     app.get('/users', function(req, res){
 
         // Uses Mongoose schema to run the search (empty conditions)
-        var query = User.find({});
+        var query = user.find({});
         query.exec(function(err, users){
             if(err)
                 res.send(err);
