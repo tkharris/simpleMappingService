@@ -30,6 +30,8 @@ app.use(bodyParser.text());                                     // allows bodyPa
 app.use(bodyParser.json({ type: 'application/vnd.api+json'}));  // parse application/vnd.api+json as json
 app.use(methodOverride());
 
+app.set('view engine', 'ejs');
+
 // required for passport
 app.use(session({
   secret: 'BANANAcobana',

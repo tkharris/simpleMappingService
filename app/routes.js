@@ -5,7 +5,7 @@ var user            = require('./models/model.js');
 // Opens App Routes
 module.exports = function(app, passport) {
 
-     // =====================================
+    // =====================================
     // HOME PAGE (with login links) ========
     // =====================================
     app.get('/', function(req, res) {
@@ -17,7 +17,7 @@ module.exports = function(app, passport) {
     // =====================================
     // show the login form
     app.get('/login', function(req, res) {
-        res.sendfile('public/views/login.html');
+        res.render('login.ejs', {message: req.flash('loginMessage')});
     });
 
     // process the login form
@@ -32,7 +32,7 @@ module.exports = function(app, passport) {
     // =====================================
     // show the signup form
     app.get('/signup', function(req, res) {
-        res.sendfile('public/views/signup.html');
+        res.render('signup.ejs', {message: req.flash('signupMessage')});
     });
 
     // process the signup form
