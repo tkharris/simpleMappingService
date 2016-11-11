@@ -96,14 +96,11 @@ module.exports = function(app, passport) {
 
     // POST Routes
     // --------------------------------------------------------
-    // Provides method for saving new users in the db
+    // Provides method for updating users in the db
     app.post('/users', function(req, res){
 
-        // Creates a new User based on the Mongoose schema and the post bo.dy
-        var newuser = new User(req.body);
-
-        // New User is saved in the db.
-        newuser.save(function(err){
+        location = req.body.location
+        user.findOneAndUpdate({'email': req.user.email}, {'location': location}, function(err){
             if(err)
                 res.send(err);
 

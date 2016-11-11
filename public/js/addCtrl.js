@@ -36,19 +36,17 @@ addCtrl.controller('addCtrl', function($scope, $http, $rootScope, geolocation, g
     // Functions
     // ----------------------------------------------------------------------------
     // Creates a new user based on the form fields
-    $scope.createUser = function() {
+    $scope.setLocation = function() {
 
         // Grabs all of the text box fields
         var userData = {
-            username: $scope.formData.username,
+            email: $scope.formData.email,
             location: [$scope.formData.longitude, $scope.formData.latitude]
         };
 
         // Saves the user data to the db
         $http.post('/users', userData)
             .success(function (data) {
-                // Once complete, clear the form (except location)
-                $scope.formData.username = "";
             })
             .error(function (data) {
                 console.log('Error: ' + data);
