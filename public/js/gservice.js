@@ -41,6 +41,10 @@ angular.module('gservice', [])
             }).error(function(){});
         };
 
+        googleMapService.showLocations = function(locationData){
+            locations = locationData;
+        }
+
         // Private Inner Functions
         // --------------------------------------------------------------
         // Convert a JSON of users into map points
@@ -74,22 +78,7 @@ angular.module('gservice', [])
         return locations;
     };
 
-// Initializes the map
-var initialize = function(latitude, longitude) {
-
-    // Uses the selected lat, long as starting point
-    var myLatLng = {lat: selectedLat, lng: selectedLong};
-
-    // If map has not been created already...
-    if (!map){
-
-        // Create a new map and place in the index.html page
-        var map = new google.maps.Map(document.getElementById('map'), {
-            zoom: 3,
-            center: myLatLng
-        });
-    }
-
+var placePins = function() {
     // Loop through each location in the array and place a marker
     locations.forEach(function(n, i){
         var marker = new google.maps.Marker({
@@ -107,6 +96,23 @@ var initialize = function(latitude, longitude) {
             n.message.open(map, marker);
         });
     });
+};
+
+// Initializes the map
+var initialize = function(latitude, longitude) {
+
+    // Uses the selected lat, long as starting point
+    var myLatLng = {lat: selectedLat, lng: selectedLong};
+
+    // If map has not been created already...
+    if (!map){
+
+        // Create a new map and place in the index.html page
+        var map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 3,
+            center: myLatLng
+        });
+    }
 
     // Set initial location as a bouncing red marker
     var initialLocation = new google.maps.LatLng(latitude, longitude);
@@ -117,6 +123,8 @@ var initialize = function(latitude, longitude) {
         icon: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
     });
     lastMarker = marker;
+
+    placePins();
 
     // Function for moving to a selected location
     map.panTo(new google.maps.LatLng(latitude, longitude));
