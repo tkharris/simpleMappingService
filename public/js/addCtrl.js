@@ -19,7 +19,8 @@ addCtrl.controller('addCtrl', function($scope, $http, $rootScope, $cookies, geol
     var websocket = new WebSocket(wsUri);
     websocket.onmessage = function(event){
         var msg = JSON.parse(event.data);
-        console.log(msg);
+        console.log("from websocket: " + msg);
+        gservice.placePins(msg);
     };
 
     $http.get('/me')
@@ -69,6 +70,6 @@ addCtrl.controller('addCtrl', function($scope, $http, $rootScope, $cookies, geol
         websocket.send(JSON.stringify({sessionID: sessionID, userData: userData}));
 
         // Refresh the map with new data
-        gservice.refresh(location.latitude, location.longitude);
+        //gservice.refresh(location.latitude, location.longitude);
     };
 });

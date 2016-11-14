@@ -56,8 +56,17 @@ var server = ws.createServer(function(conn){
   console.log("New connection");
   conn.on("text", function (str) {
     console.log("Received "+str);
-    placer.place(JSON.parse(str).userData);
-    conn.sendText(str);
+    placer.place(
+      JSON.parse(str).userData,
+      function(err_msg){
+        console.send(err);
+      },
+      function(users){
+        console.log("about to send to client: " + users);
+        // If no errors are found, it responds with a JSON of all users
+        conn.sendText(JSON.stringify(users));
+      }
+    );
   });
   conn.on("error", function (errObj) {
     console.log("Error: " + errObj);
