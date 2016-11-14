@@ -70,6 +70,13 @@ angular.module('gservice', []).factory('gservice', function($rootScope, $http){
     };
 
     googleMapService.placePins = function(response) {
+        googleMapService.placePins.markers = googleMapService.placePins.markers || [];
+
+        for (var i = 0; i < googleMapService.placePins.markers.length; i++) {
+          googleMapService.placePins.markers[i].setMap(null);
+        }
+        googleMapService.placePins.markers = [];
+
         locations = convertToMapPoints(response);
 
         // Loop through each location in the array and place a marker
@@ -80,10 +87,12 @@ angular.module('gservice', []).factory('gservice', function($rootScope, $http){
                 title: "Big Map",
                 icon: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
             });
-    
+
+            googleMapService.placePins.markers.push(marker);
+
             // For each marker created, add a listener that checks for clicks
             google.maps.event.addListener(marker, 'click', function(e){
-    
+
                 // When clicked, open the selected marker's message
                 currentSelectedMarker = n;
                 n.message.open(map, marker);
@@ -93,20 +102,20 @@ angular.module('gservice', []).factory('gservice', function($rootScope, $http){
 
     // Initializes the map
     var initialize = function(latitude, longitude, response) {
-    
+
         // Uses the selected lat, long as starting point
         var myLatLng = {lat: selectedLat, lng: selectedLong};
-    
+
         // If map has not been created already...
         //if (!map){
-    
+
             // Create a new map and place in the index.html page
             map = new google.maps.Map(document.getElementById('map'), {
                 zoom: 3,
                 center: myLatLng
             });
         //}
-    
+
         // Set initial location as a bouncing red marker
         var initialLocation = new google.maps.LatLng(latitude, longitude);
         var marker = new google.maps.Marker({
@@ -116,12 +125,12 @@ angular.module('gservice', []).factory('gservice', function($rootScope, $http){
             icon: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
         });
         lastMarker = marker;
-    
+
         googleMapService.placePins(response);
-    
+
         // Function for moving to a selected location
         map.panTo(new google.maps.LatLng(latitude, longitude));
-    
+
         // Clicking on the Map moves the bouncing red marker
         google.maps.event.addListener(map, 'click', function(e){
             var marker = new google.maps.Marker({
@@ -130,16 +139,16 @@ angular.module('gservice', []).factory('gservice', function($rootScope, $http){
                 map: map,
                 icon: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
             });
-    
+
             // When a new spot is selected, delete the old red bouncing marker
             if(lastMarker){
                 lastMarker.setMap(null);
             }
-    
+
             // Create a new red bouncing marker and move to it
             lastMarker = marker;
             map.panTo(marker.position);
-    
+
             // Update Broadcasted Variable (lets the panels know to change their lat, long values)
             googleMapService.clickLat = marker.getPosition().lat();
             googleMapService.clickLong = marker.getPosition().lng();
@@ -150,6 +159,6 @@ angular.module('gservice', []).factory('gservice', function($rootScope, $http){
     // Refresh the page upon window load. Use the initial latitude and longitude
     google.maps.event.addDomListener(window, 'load',
         googleMapService.refresh(selectedLat, selectedLong));
-    
+
     return googleMapService;
 });
