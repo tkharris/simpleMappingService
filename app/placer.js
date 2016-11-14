@@ -10,8 +10,6 @@ exports.place = function(userData, err_f, ok_f) {
     function(err){
       if(err)
         console.log('error: ', err);
-      // If no errors are found, it responds with a JSON of the new user
-      console.log('ok?');
 
       // Uses Mongoose schema to run the search (empty conditions)
       var query = user.find({});
@@ -19,7 +17,6 @@ exports.place = function(userData, err_f, ok_f) {
         if(err)
           err_f(err);
         else
-          console.log("users from query: " + users);
           ok_f(users);
       });
     }

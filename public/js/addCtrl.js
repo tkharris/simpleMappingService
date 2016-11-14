@@ -19,13 +19,11 @@ addCtrl.controller('addCtrl', function($scope, $http, $rootScope, $cookies, geol
     var websocket = new WebSocket(wsUri);
     websocket.onmessage = function(event){
         var msg = JSON.parse(event.data);
-        console.log("from websocket: " + msg);
         gservice.placePins(msg);
     };
 
     $http.get('/me')
         .success(function (data) {
-            console.log(data);
             $scope.formData.email = data.email;
         })
         .error(function (data) {
@@ -59,17 +57,6 @@ addCtrl.controller('addCtrl', function($scope, $http, $rootScope, $cookies, geol
             location: [location.longitude, location.latitude]
         };
 
-        // Saves the user data to the db
-        //$http.post('/users', userData)
-        //    .success(function (data) {
-        //    })
-        //    .error(function (data) {
-        //        console.log('Error: ' + data);
-        //    });
-        console.log("sending to server: " + JSON.stringify({sessionID: sessionID, userData: userData}))
         websocket.send(JSON.stringify({sessionID: sessionID, userData: userData}));
-
-        // Refresh the map with new data
-        //gservice.refresh(location.latitude, location.longitude);
     };
 });

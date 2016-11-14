@@ -55,14 +55,12 @@ var placer = require('./app/placer.js');
 var server = ws.createServer(function(conn){
   console.log("New connection");
   conn.on("text", function (str) {
-    console.log("Received "+str);
     placer.place(
       JSON.parse(str).userData,
       function(err_msg){
         console.send(err);
       },
       function(users){
-        console.log("about to send to client: " + users);
         // If no errors are found, it responds with a JSON of all users
         server.connections.forEach(function(client) {
           client.sendText(JSON.stringify(users));
