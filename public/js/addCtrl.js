@@ -14,8 +14,13 @@ addCtrl.controller('addCtrl', function($scope, $http, $rootScope, $cookies, geol
     $scope.formData.longitude = -98.350;
 
     var sessionID = $cookies.get('connect.sid');
+
     var wsUri = "ws://localhost:3001/";
     var websocket = new WebSocket(wsUri);
+    websocket.onmessage = function(event){
+        var msg = JSON.parse(event.data);
+        console.log(msg);
+    };
 
     $http.get('/me')
         .success(function (data) {

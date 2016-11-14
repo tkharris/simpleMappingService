@@ -32151,10 +32151,245 @@ angular.module('geolocation')
 }]);
 
 },{}],6:[function(require,module,exports){
+// Creates the addCtrl Module and Controller. Note that it depends on the 'geolocation' module and service.
+var addCtrl = angular.module('addCtrl', ['ngCookies', 'geolocation', 'gservice']);
+addCtrl.controller('addCtrl', function($scope, $http, $rootScope, $cookies, geolocation, gservice){
+
+    // Initializes Variables
+    // ----------------------------------------------------------------------------
+    $scope.formData = {};
+    var coords = {};
+    var lat = 0;
+    var long = 0;
+
+    // Set initial coordinates to the center of the US
+    $scope.formData.latitude = 39.500;
+    $scope.formData.longitude = -98.350;
+
+    var sessionID = $cookies.get('connect.sid');
+
+    var wsUri = "ws://localhost:3001/";
+    var websocket = new WebSocket(wsUri);
+    websocket.onmessage = function(event){
+        var msg = JSON.parse(event.data);
+        console.log(msg);
+    };
+
+    $http.get('/me')
+        .success(function (data) {
+            console.log(data);
+            $scope.formData.email = data.email;
+        })
+        .error(function (data) {
+            console.log('Error: ' + data);
+        });
+
+    // Get coordinates based on mouse click. When a click event is detected....
+    $rootScope.$on("clicked", function(){
+
+        // Run the gservice functions associated with identifying coordinates
+        $scope.$apply(function(){
+            $scope.formData.latitude = parseFloat(gservice.clickLat).toFixed(3);
+            $scope.formData.longitude = parseFloat(gservice.clickLong).toFixed(3);
+            $scope.formData.htmlverified = "Nope (Thanks for spamming my map...)";
+        });
+    });
+
+    // Functions
+    // ----------------------------------------------------------------------------
+    // Creates a new user based on the form fields
+    $scope.setLocation = function() {
+
+        var location = {
+            longitude: parseFloat($scope.formData.longitude),
+            latitude: parseFloat($scope.formData.latitude)
+        };
+
+        // Grabs all of the text box fields
+        var userData = {
+            email: $scope.formData.email,
+            location: [location.longitude, location.latitude]
+        };
+
+        // Saves the user data to the db
+        //$http.post('/users', userData)
+        //    .success(function (data) {
+        //    })
+        //    .error(function (data) {
+        //        console.log('Error: ' + data);
+        //    });
+        console.log("sending to server: " + JSON.stringify({sessionID: sessionID, userData: userData}))
+        websocket.send(JSON.stringify({sessionID: sessionID, userData: userData}));
+
+        // Refresh the map with new data
+        gservice.refresh(location.latitude, location.longitude);
+    };
+});
+
+},{}],7:[function(require,module,exports){
 // Declares the initial angular module "meanMapApp". Module grabs other controllers and services.
 var angular = require('angular');
 var ngCookies = require('angular-cookies');
 var geolocation = require('angularjs-geolocation');
+var addCtrl = require('./addCtrl.js');
+var googleMapService = require('./gservice');
 var app = angular.module('meanMapApp', ['addCtrl', 'ngCookies', 'geolocation', 'gservice']);
 
-},{"angular":4,"angular-cookies":2,"angularjs-geolocation":5}]},{},[6]);
+},{"./addCtrl.js":6,"./gservice":8,"angular":4,"angular-cookies":2,"angularjs-geolocation":5}],8:[function(require,module,exports){
+// Creates the gservice factory. This will be the primary means by which we interact with Google Maps
+angular.module('gservice', []).factory('gservice', function($rootScope, $http){
+
+    // Initialize Variables
+    // -------------------------------------------------------------
+    // Service our factory will return
+    var googleMapService = {};
+
+    // Array of locations obtained from API calls
+    var locations = [];
+
+    // Selected Location (initialize to center of America)
+    var selectedLat = 39.50;
+    var selectedLong = -98.35;
+
+    // Handling Clicks and location selection
+    googleMapService.clickLat  = 0;
+    googleMapService.clickLong = 0;
+
+    // Functions
+    // --------------------------------------------------------------
+    // Refresh the Map with new data. Function will take new latitude and longitude coordinates.
+    googleMapService.refresh = function(latitude, longitude){
+
+        // Clears the holding array of locations
+        locations = [];
+
+        // Set the selected lat and long equal to the ones provided on the refresh() call
+        selectedLat = latitude;
+        selectedLong = longitude;
+
+        // Perform an AJAX call to get all of the records in the db.
+        $http.get('/users').success(function(response){
+            // Then initialize the map.
+            initialize(latitude, longitude, response);
+        }).error(function(){});
+    };
+
+    // Private Inner Functions
+    // --------------------------------------------------------------
+    // Convert a JSON of users into map points
+    var convertToMapPoints = function(response){
+
+        // Clear the locations holder
+        var locations = [];
+
+        // Loop through all of the JSON entries provided in the response
+        for(var i= 0; i < response.length; i++) {
+            var user = response[i];
+            if (typeof user.location == 'undefined')
+                continue;
+
+            // Create popup windows for each record
+            var  contentString =
+                '<p><b>Username</b>: ' + user.email +
+                '</p>';
+
+            // Converts each of the JSON records into Google Maps Location format (Note [Lat, Lng] format).
+            locations.push({
+                latlon: new google.maps.LatLng(user.location[1], user.location[0]),
+                message: new google.maps.InfoWindow({
+                    content: contentString,
+                    maxWidth: 320
+                }),
+                username: user.email
+            });
+        }
+        // location is now an array populated with records in Google Maps format
+        return locations;
+    };
+
+    googleMapService.placePins = function(response) {
+        locations = convertToMapPoints(response);
+
+        // Loop through each location in the array and place a marker
+        locations.forEach(function(n, i){
+            var marker = new google.maps.Marker({
+                position: n.latlon,
+                map: map,
+                title: "Big Map",
+                icon: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+            });
+    
+            // For each marker created, add a listener that checks for clicks
+            google.maps.event.addListener(marker, 'click', function(e){
+    
+                // When clicked, open the selected marker's message
+                currentSelectedMarker = n;
+                n.message.open(map, marker);
+            });
+        });
+    };
+
+    // Initializes the map
+    var initialize = function(latitude, longitude, response) {
+    
+        // Uses the selected lat, long as starting point
+        var myLatLng = {lat: selectedLat, lng: selectedLong};
+    
+        // If map has not been created already...
+        //if (!map){
+    
+            // Create a new map and place in the index.html page
+            map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 3,
+                center: myLatLng
+            });
+        //}
+    
+        // Set initial location as a bouncing red marker
+        var initialLocation = new google.maps.LatLng(latitude, longitude);
+        var marker = new google.maps.Marker({
+            position: initialLocation,
+            animation: google.maps.Animation.BOUNCE,
+            map: map,
+            icon: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
+        });
+        lastMarker = marker;
+    
+        googleMapService.placePins(response);
+    
+        // Function for moving to a selected location
+        map.panTo(new google.maps.LatLng(latitude, longitude));
+    
+        // Clicking on the Map moves the bouncing red marker
+        google.maps.event.addListener(map, 'click', function(e){
+            var marker = new google.maps.Marker({
+                position: e.latLng,
+                animation: google.maps.Animation.BOUNCE,
+                map: map,
+                icon: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
+            });
+    
+            // When a new spot is selected, delete the old red bouncing marker
+            if(lastMarker){
+                lastMarker.setMap(null);
+            }
+    
+            // Create a new red bouncing marker and move to it
+            lastMarker = marker;
+            map.panTo(marker.position);
+    
+            // Update Broadcasted Variable (lets the panels know to change their lat, long values)
+            googleMapService.clickLat = marker.getPosition().lat();
+            googleMapService.clickLong = marker.getPosition().lng();
+            $rootScope.$broadcast("clicked");
+        });
+    };
+
+    // Refresh the page upon window load. Use the initial latitude and longitude
+    google.maps.event.addDomListener(window, 'load',
+        googleMapService.refresh(selectedLat, selectedLong));
+    
+    return googleMapService;
+});
+
+},{}]},{},[7]);

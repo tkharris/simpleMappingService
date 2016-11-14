@@ -57,7 +57,7 @@ var server = ws.createServer(function(conn){
   conn.on("text", function (str) {
     console.log("Received "+str);
     placer.place(JSON.parse(str).userData);
-    conn.sendText(str.toUpperCase()+"!!!");
+    conn.sendText(str);
   });
   conn.on("error", function (errObj) {
     console.log("Error: " + errObj);
