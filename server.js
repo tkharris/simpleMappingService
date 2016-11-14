@@ -64,7 +64,9 @@ var server = ws.createServer(function(conn){
       function(users){
         console.log("about to send to client: " + users);
         // If no errors are found, it responds with a JSON of all users
-        conn.sendText(JSON.stringify(users));
+        server.connections.forEach(function(client) {
+          client.sendText(JSON.stringify(users));
+        });
       }
     );
   });
