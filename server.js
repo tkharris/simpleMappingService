@@ -15,7 +15,8 @@ var app             = express();
 // Express Configuration
 // -----------------------------------------------------
 // Sets the connection to MongoDB
-mongoose.connect("mongodb://localhost/MeanMapApp");
+var mongoURI = process.env.MONGO_URI || "mongodb://localhost/MeanMapApp";
+mongoose.connect(mongoURI);
 
 require('./config/passport')(passport); // pass passport for configuration
 
