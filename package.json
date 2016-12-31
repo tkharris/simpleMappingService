@@ -21,5 +21,8 @@
     "nodejs-websocket": "latest",
     "passport": "~0.1.17",
     "passport-local": "~0.1.6"
+  },
+  "engines": {
+    "node": "6.3.1"
   }
 }
